@@ -8,7 +8,7 @@ import (
 	"github.com/winterssy/gjson"
 )
 
-func ExampleParse() {
+func Example_parseToObject() {
 	data, err := ioutil.ReadFile("./testdata/music.json")
 	if err != nil {
 		log.Fatal(err)
@@ -19,13 +19,47 @@ func ExampleParse() {
 		panic(err)
 	}
 
-	fmt.Println("code:", obj.GetNumber("code"))
-	fmt.Println("msg:", obj.GetString("msg"))
-	fmt.Println("total of data:", obj.GetString("data", "total"))
-	fmt.Println("song name:", obj.GetArray("data", "list").Index(0).ToObject().GetString("name"))
+	fmt.Println(obj.GetNumber("code"))
+	fmt.Println(obj.GetString("data", "total"))
+	fmt.Println(obj.GetArray("data", "list").Index(0).ToObject().GetString("name"))
 	// Output:
-	// code: 200
-	// msg: success
-	// total of data: 1917
-	// song name: 告白气球
+	// 200
+	// 1917
+	// 告白气球
+}
+
+func Example_bindToStruct() {
+	const dummyData = `
+{
+  "code": 200,
+  "data": {
+    "list": [
+      {
+        "artist": "周杰伦",
+        "album": "周杰伦的床边故事",
+        "name": "告白气球"
+      },
+      {
+        "artist": "周杰伦",
+        "album": "说好不哭 (with 五月天阿信)",
+        "name": "说好不哭 (with 五月天阿信)"
+      }
+    ]
+  }
+}
+`
+	var s struct {
+		Code int `json:"code"`
+		Data struct {
+			List gjson.Array `json:"list"`
+		} `json:"data"`
+	}
+	err := gjson.UnmarshalFromString(dummyData, &s)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(s.Data.List.Index(0).ToObject().GetString("name"))
+	// Output:
+	// 告白气球
 }
